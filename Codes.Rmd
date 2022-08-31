@@ -1,0 +1,387 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+---
+title: "PGA Analysis"
+output: 
+pdf_document: default
+html_documnet:
+ df_print: paged
+ ---
+
+```{r}
+#Loading Libraries
+library(caret)
+library(tidyverse)
+library(caTools)
+library(corrgram)
+library(readxl)
+library(pastecs)
+library(Jmisc)
+```
+
+```{r}
+#Reading data and trasnforming one string data to numeric
+df <- read_excel(file.choose(), skip = 2)
+colnames(df)
+str(df)
+df$depth1 <- as.numeric(df$depth)
+str(df)
+
+```
+
+```{r}
+#data management
+df <- df %>%  select(pga10,tlat, tlong, mwc, depth1, years, zones)
+#dropping missing values
+df <- df %>% filter(!is.na(pga10), !is.na(mwc), !is.na(depth1))
+#generating square forms
+df <- df %>% mutate(mwc2 = mwc*mwc,depth12 = depth1*depth1, latlong =  tlat*tlong, years2= years*years)
+df <- df %>% select(zones, pga10, tlat, tlong, latlong, mwc, mwc2, depth1, depth12, years, years2)
+```
+
+```{r}
+#subsets zonewise
+df1 <- df %>%  dplyr::filter(zones == 1) %>%  select(-zones)
+df2 <- df %>%  dplyr::filter(zones == 2) %>%  select(-zones)
+df3 <- df %>%  dplyr::filter(zones == 3) %>%  select(-zones)
+df4 <- df %>%  dplyr::filter(zones == 4) %>%  select(-zones)
+df5 <- df %>%  dplyr::filter(zones == 5) %>%  select(-zones)
+df6 <- df %>%  dplyr::filter(zones == 6) %>%  select(-zones)
+df7 <- df %>%  dplyr::filter(zones == 7) %>%  select(-zones)
+df8 <- df %>%  dplyr::filter(zones == 8) %>%  select(-zones)
+df9 <- df %>%  dplyr::filter(zones == 9) %>%  select(-zones)
+df10 <- df %>%  dplyr::filter(zones == 10) %>%  select(-zones)
+```
+
+```{r}
+#### Zone 1
+stat.desc(df1)
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df1$pga10, SplitRatio=0.7)
+# select 30% of the data for validation
+trainSet <- subset(x=df1, sampleSplit==TRUE)
+testSet <- subset(x=df1, sampleSplit==FALSE)
+#estimating regression machine learning
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+#generating resduals for validity
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone1 <- trainSet
+zone1<- addCol(zone1, zone = 1)
+
+#patterns in residuals
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+
+#preduction done based on testing sample 
+preds <- predict(model, testSet)
+#joining the preduction outcome with actual data 
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+
+#generating RMSE
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+#compiling the zone 1 data
+df1a <- df1 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df1a)
+#####
+
+```
+
+```{r}
+#### Zone 2
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df2$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df2, sampleSplit==TRUE)
+testSet <- subset(x=df2, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone2 <- trainSet
+zone2<- addCol(zone2, zone = 2)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df2a <- df2 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df2a)
+#####
+
+```
+
+```{r}
+#### zone 3
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df3$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df3, sampleSplit==TRUE)
+testSet <- subset(x=df3, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone3 <- trainSet
+zone3<- addCol(zone3, zone = 3)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+
+df3a <- df3 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df3a)
+#####
+```
+
+```{r}
+#### Zone 4
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df4$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df4, sampleSplit==TRUE)
+testSet <- subset(x=df4, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone4 <- trainSet
+zone4<- addCol(zone4, zone = 4)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df4a <- df4 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df4a)
+#####
+```
+
+```{r}
+#### zone 5
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df5$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df5, sampleSplit==TRUE)
+testSet <- subset(x=df5, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone5 <- trainSet
+zone5<- addCol(zone5, zone = 5)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df5a <- df5 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df5a)
+#####
+
+```
+
+```{r}
+#### zone 6
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df6$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df6, sampleSplit==TRUE)
+testSet <- subset(x=df6, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone6 <- trainSet
+zone6<- addCol(zone6, zone = 6)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df6a <- df6 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df6a)
+#####
+
+```
+
+```{r}
+#### zone 7
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df7$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df7, sampleSplit==TRUE)
+testSet <- subset(x=df7, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone7 <- trainSet
+zone7<- addCol(zone7, zone = 7)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df7a <- df7 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df7a)
+#####
+
+```
+
+```{r}
+#### zone 8
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df8$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df8, sampleSplit==TRUE)
+testSet <- subset(x=df8, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone8 <- trainSet
+zone8<- addCol(zone8, zone = 8)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df8a <- df8 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df8a)
+#####
+
+```
+
+```{r}
+#### zone 9
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df9$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df9, sampleSplit==TRUE)
+testSet <- subset(x=df9, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone9 <- trainSet
+zone9<- addCol(zone9, zone = 9)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df9a <- df9 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df9a)
+#####
+
+```
+
+```{r}
+#### zone 10
+set.seed(42)
+# create a list of 80% of the rows in the original dataset we can use for training
+sampleSplit <- sample.split(Y =df10$pga10, SplitRatio=0.7)
+# select 20% of the data for validation
+trainSet <- subset(x=df10, sampleSplit==TRUE)
+testSet <- subset(x=df10, sampleSplit==FALSE)
+model <- lm(formula=pga10 ~ ., data=trainSet)
+summary(model)
+modelResiduals <- as.data.frame(residuals(model))
+trainSet$pgapre <- modelResiduals
+zone10 <- trainSet
+zone10<- addCol(zone10, zone = 10)
+
+ggplot(modelResiduals, aes(residuals(model))) + 
+  geom_histogram(fill='deepskyblue', color='black')
+preds <- predict(model, testSet)
+modelEval <- cbind(testSet$pga10, preds)
+colnames(modelEval) <- c('Actual', 'Predicted')
+modelEval <- as.data.frame(modelEval)
+mse <- mean((modelEval$Actual - modelEval$Predicted)^2)
+mse
+rmse <- sqrt(mse)
+rmse
+df10a <- df10 %>% select(-mwc2, -latlong, -depth12)
+stat.desc(df10a)
+#####
+
+```
+
+```{r}
+#datafile merging
+total <- rbind(zone1, zone2, zone3, zone4, zone5, zone6, zone7, zone8, zone9, zone10)
+names(total)[names(total) == "pgapre"] <- "pgapre"
+total$pgapre <-as.numeric(unlist(total$pgapre))
+total$zone <- as.numeric(total$zone)
+total <- total %>% mutate (est.pga = pga10 - pgapre)
+names(total)[names(total) == "pgapre"] <- "predict.error.pga"
+
+```
